@@ -71,7 +71,7 @@ h2 { font-size: 12px; letter-spacing: 0.2em; color: var(--muted); margin: 22px 0
 #quality-current { margin-left: 10px; font-size: 13px; color: var(--muted); }
 .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
 
-#perf { position: fixed; top: 64px; right: 8px; margin: 0; font: 12px/1.45 ui-monospace, Consolas, monospace; background: rgba(0, 0, 0, 0.7); color: #9ff; padding: 8px 10px; border-radius: 6px; pointer-events: auto; }
+#perf { position: fixed; top: 64px; max-width: calc(100vw - 16px); white-space: pre-wrap; right: 8px; margin: 0; font: 12px/1.45 ui-monospace, Consolas, monospace; background: rgba(0, 0, 0, 0.7); color: #9ff; padding: 8px 10px; border-radius: 6px; pointer-events: auto; }
 #perf label { display: inline-block; margin-right: 6px; }
 
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }

@@ -51,7 +51,13 @@ export class PerformancePanel {
   text() {
     const s = this.stats();
     const g = this.game;
+    if (!this.gpu) {
+      const gl = g.sm.renderer.getContext();
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      this.gpu = gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
+    }
     return [
+      `GPU ${this.gpu}`,
       `FPS ${s.fps.toFixed(0)}  avg(300f) ${s.avgFps.toFixed(1)}`,
       `p95 ${s.p95.toFixed(1)} ms`,
       `draw calls ${s.calls}  tris ${s.triangles}`,
