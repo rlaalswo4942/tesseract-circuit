@@ -1,5 +1,7 @@
 # TESSERACT CIRCUIT
 
+**플레이: https://rlaalswo4942.github.io/tesseract-circuit/**
+
 반투명 에너지 큐브의 **여섯 면이 하나로 이어진 회로 미로**를 따라 출발점에서 도착점까지 전기를 연결하는 3D 웹 퍼즐 게임입니다. Three.js + Vite, 서버·로그인·DB 없이 정적 호스팅(GitHub Pages)으로 동작합니다.
 
 ## 실행
