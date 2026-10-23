@@ -3,11 +3,11 @@ export const CONFIG = {
   cubeWorldSize: 4, // world units, independent of grid size
   lift: 0.02, // circuit height above the shell
   pathLift: 0.035,
-  traceWidth: 0.14,
-  padSize: 0.3,
-  dotSize: 0.07,
-  pathWidth: 0.3,
-  pathPad: 0.44,
+  traceWidth: 0.07,
+  padSize: 0.18,
+  dotSize: 0.05,
+  pathWidth: 0.16,
+  pathPad: 0.26,
 
   dragThresholdPx: 7, // pointer travel above this = rotate, not click
   extendDuration: 0.2, // seconds per new step

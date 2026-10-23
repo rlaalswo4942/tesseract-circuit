@@ -62,7 +62,7 @@ export class SceneManager {
     const d = this.fitDistance();
     this.camera.position.copy(dir.multiplyScalar(d));
     this.controls.target.set(0, 0, 0);
-    this.controls.minDistance = d * 0.55;
+    this.controls.minDistance = d * 0.3;
     this.controls.maxDistance = d * 1.8;
     this.controls.update();
     this.dirty = true;
@@ -77,7 +77,7 @@ export class SceneManager {
     this.composer?.setSize(w, h);
     if (this.controls) {
       const d = this.fitDistance();
-      this.controls.minDistance = d * 0.55;
+      this.controls.minDistance = d * 0.3;
       this.controls.maxDistance = d * 1.8;
     }
     this.dirty = true;

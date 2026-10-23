@@ -1,4 +1,5 @@
 import { STAGES } from '../data/stages.js';
+import { DIFFICULTY } from '../config/difficultyConfig.js';
 
 const $ = (id) => document.getElementById(id);
 const QUALITY_LABEL = { low: '낮음', medium: '중간', high: '높음' };
@@ -28,9 +29,10 @@ export class UIController {
     $('stage-grid').replaceChildren(
       ...STAGES.map((s, i) => {
         const b = document.createElement('button');
-        b.innerHTML = `<b>${i + 1}</b>${s.name}`;
+        const N = DIFFICULTY[s.difficulty].gridSize;
+        b.innerHTML = `<b>${i + 1}</b>${N}×${N}`;
         b.disabled = i >= unlocked;
-        b.title = b.disabled ? '이전 스테이지를 클리어하면 열립니다' : s.name;
+        b.title = b.disabled ? '이전 스테이지를 클리어하면 열립니다' : `${i + 1}. ${s.name}`;
         b.classList.toggle('cleared', cleared.includes(i));
         b.classList.toggle('selected', i === this.selected);
         b.onclick = () => {
@@ -41,7 +43,7 @@ export class UIController {
         return b;
       }),
     );
-    $('btn-start').textContent = this.selected === 0 && !cleared.length ? '시작 — STAGE 1부터' : `STAGE ${this.selected + 1} 시작`;
+    $('btn-start').textContent = this.selected === 0 && !cleared.length ? '시작 — STAGE 1부터' : `STAGE ${this.selected + 1} · ${STAGES[this.selected].name.toUpperCase()} 시작`;
   }
 
   showMenu() {

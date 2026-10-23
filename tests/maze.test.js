@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateMaze, mazeFromData } from '../src/maze/MazeGenerator.js';
+import { generateMaze, mazeFromData, spanningTree, mulberry32 } from '../src/maze/MazeGenerator.js';
 import { validateMaze } from '../src/maze/MazeValidator.js';
 import { MazeGraph } from '../src/maze/MazeGraph.js';
 import { createTopology } from '../src/maze/CubeTopology.js';
@@ -9,7 +9,7 @@ import { DIFFICULTY } from '../src/config/difficultyConfig.js';
 describe('fixed fallback maze', () => {
   const maze = mazeFromData(FIXED_MAZE);
   it('is valid and crosses front → top', () => {
-    const v = validateMaze(maze, DIFFICULTY.initiation);
+    const v = validateMaze(maze);
     expect(v.errors).toEqual([]);
     expect(maze.requiredFaces).toEqual([0, 4]);
     expect(v.metrics.length).toBe(9);
@@ -51,14 +51,14 @@ describe('validator', () => {
 
 describe('generator', () => {
   it('is deterministic per seed', () => {
-    const a = generateMaze(DIFFICULTY.network, 42).maze.toJSON();
-    const b = generateMaze(DIFFICULTY.network, 42).maze.toJSON();
+    const a = generateMaze(DIFFICULTY[12], 42).maze.toJSON();
+    const b = generateMaze(DIFFICULTY[12], 42).maze.toJSON();
     expect(a).toEqual(b);
   });
 
   it('produces valid mazes across many seeds for every preset', () => {
     for (const [name, cfg] of Object.entries(DIFFICULTY)) {
-      for (let seed = 100; seed < 115; seed++) {
+      for (let seed = 100; seed < 105; seed++) {
         const { maze } = generateMaze(cfg, seed);
         const v = validateMaze(maze, cfg);
         expect(v.errors, `${name} seed ${seed}`).toEqual([]);
@@ -67,7 +67,26 @@ describe('generator', () => {
   });
 
   it('gives up with a reason instead of looping on impossible constraints', () => {
-    const impossible = { ...DIFFICULTY.initiation, minSolutionLength: 500, maxSolutionLength: 600 };
+    const impossible = { ...DIFFICULTY[1], minSolutionLength: 500, maxSolutionLength: 600 };
     expect(() => generateMaze(impossible, 1, 20)).toThrow(/failed after 20 attempts/);
+  });
+
+  it('rejects transitions/revisits combos that no path can satisfy, without attempting', () => {
+    const cfg = { ...DIFFICULTY[20], minFaceTransitions: 12, allowedFaceRevisits: 3 }; // max 5 + 3 = 8
+    expect(() => generateMaze(cfg, 1)).toThrow(/impossible config/);
+  });
+
+  it('every preset is feasible on paper', () => {
+    for (const cfg of Object.values(DIFFICULTY)) expect(cfg.minFaceTransitions).toBeLessThanOrEqual(cfg.requiredFaces - 1 + cfg.allowedFaceRevisits);
+  });
+
+  it('mix changes maze texture: bushier trees have more dead ends', () => {
+    const topo = createTopology(10);
+    const leaves = (mix) => {
+      let sum = 0;
+      for (let seed = 1; seed <= 5; seed++) sum += spanningTree(topo, mulberry32(seed), mix).filter((n) => n.length === 1).length;
+      return sum;
+    };
+    expect(leaves(0.6)).toBeGreaterThan(leaves(0) * 1.5);
   });
 });

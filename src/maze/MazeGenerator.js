@@ -23,25 +23,30 @@ export function mulberry32(seed) {
   return next;
 }
 
-/** Randomised DFS spanning tree over the whole cube surface (long winding corridors). */
-function spanningTree(topo, rng) {
+/**
+ * "Growing tree" spanning tree over the whole cube surface. mix = 0 → pure DFS (long winding
+ * corridors); mix → 1 → Prim-like (bushy, many short dead ends). Mixing the two per step makes the
+ * texture irregular: corridors that suddenly break into thickets.
+ */
+export function spanningTree(topo, rng, mix = 0) {
   const tree = topo.cells.map(() => []);
   const visited = new Uint8Array(topo.cells.length);
   const root = rng.int(topo.cells.length);
-  const stack = [root];
+  const active = [root];
   visited[root] = 1;
-  while (stack.length) {
-    const cur = stack[stack.length - 1];
+  while (active.length) {
+    const i = mix > 0 && rng() < mix ? rng.int(active.length) : active.length - 1;
+    const cur = active[i];
     const open = topo.cells[cur].neighbors.filter((n) => !visited[n.id]);
     if (!open.length) {
-      stack.pop();
+      active.splice(i, 1);
       continue;
     }
     const nb = open[rng.int(open.length)].id;
     visited[nb] = 1;
     tree[cur].push(nb);
     tree[nb].push(cur);
-    stack.push(nb);
+    active.push(nb);
   }
   return tree;
 }
@@ -58,7 +63,7 @@ function pathFits(m, cfg) {
 
 /** One attempt. Returns a MazeGraph or a failure-reason string. */
 function tryBuild(topo, cfg, rng) {
-  const tree = spanningTree(topo, rng);
+  const tree = spanningTree(topo, rng, cfg.mix);
   const start = rng.int(topo.cells.length);
 
   // Tree distances from start.
@@ -139,6 +144,12 @@ function tryBuild(topo, cfg, rng) {
  * so a caller can fall back to a fixed maze instead of looping forever.
  */
 export function generateMaze(cfg, seed, maxAttempts = 300) {
+  // Every face change either enters a new face or re-enters an old one.
+  if (cfg.minFaceTransitions > cfg.requiredFaces - 1 + cfg.allowedFaceRevisits) {
+    const err = new Error('impossible config: minFaceTransitions > requiredFaces - 1 + allowedFaceRevisits');
+    err.failures = { 'impossible transitions/revisits': 1 };
+    throw err;
+  }
   const topo = createTopology(cfg.gridSize);
   const failures = {};
   for (let attempt = 0; attempt < maxAttempts; attempt++) {

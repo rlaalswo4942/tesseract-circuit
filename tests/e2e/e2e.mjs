@@ -22,13 +22,13 @@ const check = (name, ok, extra = '') => {
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-async function newPage(opts) {
+async function newPage(opts, url = URL) {
   const ctx = await browser.newContext(opts);
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-  await page.goto(URL);
+  await page.goto(url);
   await page.waitForFunction(() => window.__tc);
   return { page, errors, ctx };
 }
@@ -120,31 +120,32 @@ async function solve(page, tap = false) {
   await page.evaluate(() => __tc.game.onCell(__tc.solution()[1]));
   check('input after complete ignored', (await state(page)).path.length === sol.length);
 
-  for (let i = 2; i <= 6; i++) {
+  const STAGE_COUNT = await page.evaluate(() => document.querySelectorAll('#stage-grid button').length);
+  for (let i = 2; i <= STAGE_COUNT; i++) {
     await page.click('#btn-next');
     await wait(300);
     await solve(page);
     check(`stage ${i} completes by real clicks`, (await state(page)).completed);
-    if (i === 6) {
+    if (i === STAGE_COUNT) {
       await wait(400);
-      await page.screenshot({ path: `${OUT}/05-stage6-solving.png` });
+      await page.screenshot({ path: `${OUT}/05-last-stage-solved.png` });
     }
     await page.waitForSelector('#complete:not([hidden])', { timeout: 6000 });
   }
   const saved = JSON.parse(await page.evaluate(() => localStorage.getItem('tesseract-circuit:v1')));
-  check('progress saved (6 cleared)', saved.cleared.length === 6, JSON.stringify(saved));
+  check(`progress saved (${STAGE_COUNT} cleared)`, saved.cleared.length === STAGE_COUNT, `unlocked ${saved.unlocked}`);
 
   const geomBefore = await page.evaluate(() => __tc.game.sm.renderer.info.memory.geometries);
   for (let k = 0; k < 30; k++) {
-    await page.evaluate((k) => __tc.game.play(k % 6), k);
+    await page.evaluate(([k, n]) => __tc.game.play(k % n), [k, STAGE_COUNT]);
     await wait(30);
   }
   await wait(200);
   const geomAfter = await page.evaluate(() => __tc.game.sm.renderer.info.memory.geometries);
   check('no GPU geometry growth over 30 stage loads', geomAfter <= geomBefore + 2, `${geomBefore} → ${geomAfter}`);
 
-  // Performance: Level 6, continuous rotation, per preset.
-  await page.evaluate(() => __tc.game.play(5));
+  // Performance: last (largest) stage, continuous rotation, per preset.
+  await page.evaluate((n) => __tc.game.play(n - 1), STAGE_COUNT);
   const perf = [];
   for (const q of ['high', 'medium', 'low']) {
     await page.evaluate((q) => {
@@ -156,7 +157,7 @@ async function solve(page, tap = false) {
     }, q);
     await wait(4000);
     const st = await page.evaluate(() => __tc.game.perf.stats());
-    perf.push({ test: `L6 rotate ${q}`, avgFps: +st.avgFps.toFixed(1), p95ms: +st.p95.toFixed(1), drawCalls: st.calls, triangles: st.triangles });
+    perf.push({ test: `L${STAGE_COUNT} rotate ${q}`, avgFps: +st.avgFps.toFixed(1), p95ms: +st.p95.toFixed(1), drawCalls: st.calls, triangles: st.triangles });
     await page.screenshot({ path: `${OUT}/06-perf-${q}.png` });
   }
   await page.evaluate(() => {
@@ -171,8 +172,8 @@ async function solve(page, tap = false) {
     __tc.game.onCell(__tc.solution()[1]);
   });
   await wait(700);
-  const rs = await page.evaluate(() => ({ st: __tc.game.perf.stats(), len: __tc.game.path.path.length, disp: __tc.game.circuit.display }));
-  perf.push({ test: 'L6 retract ~40 cells (high)', avgFps: +rs.st.avgFps.toFixed(1), p95ms: +rs.st.p95.toFixed(1), drawCalls: rs.st.calls, triangles: rs.st.triangles });
+  const rs = await page.evaluate(() => ({ st: __tc.game.perf.stats(), len: __tc.game.path.path.length, disp: __tc.game.circuit.display, retracted: __tc.solution().length - 2 }));
+  perf.push({ test: `L${STAGE_COUNT} retract ${rs.retracted} cells (high)`, avgFps: +rs.st.avgFps.toFixed(1), p95ms: +rs.st.p95.toFixed(1), drawCalls: rs.st.calls, triangles: rs.st.triangles });
   check('long retraction (click 1st step) → start only, animation done in 0.7s', rs.len === 1 && rs.disp === 0, `display=${rs.disp}`);
   console.table(perf);
   fs.writeFileSync(`${OUT}/perf.json`, JSON.stringify({ gpu, headless: !HEADED, viewport: '1280x800', perf }, null, 2));
@@ -182,7 +183,7 @@ async function solve(page, tap = false) {
 
 // ---------- mobile (touch) ----------
 {
-  const { page, errors, ctx } = await newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
+  const { page, errors, ctx } = await newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }, URL.replace('?debug', ''));
   await wait(500);
   await page.screenshot({ path: `${OUT}/07-mobile-menu.png` });
   await page.tap('#btn-start');

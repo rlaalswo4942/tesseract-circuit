@@ -61,8 +61,8 @@ h2 { font-size: 12px; letter-spacing: 0.2em; color: var(--muted); margin: 22px 0
 .sub { color: var(--muted); margin: 0 0 18px; }
 .restored { letter-spacing: 0.4em; color: var(--amber); margin: 0 0 12px; text-shadow: 0 0 10px rgba(255, 161, 38, 0.6); }
 #btn-start { width: 100%; font-size: 18px; }
-#stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-#stage-grid button { display: flex; flex-direction: column; align-items: flex-start; font-size: 12px; text-align: left; padding: 8px 10px; }
+#stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+#stage-grid button { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--muted); padding: 6px 4px; min-height: 48px; }
 #stage-grid button b { font-size: 16px; color: var(--cyan); }
 #stage-grid button.selected { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
 #stage-grid button.cleared b::after { content: ' ✓'; color: var(--amber); }
@@ -82,4 +82,5 @@ h2 { font-size: 12px; letter-spacing: 0.2em; color: var(--muted); margin: 22px 0
   .overlay { align-items: flex-end; background: linear-gradient(0deg, rgba(2, 6, 10, 0.95) 0%, rgba(2, 6, 10, 0.75) 60%, rgba(2, 6, 10, 0.1) 100%); }
   .panel { padding-left: 0; }
   #tutorial { bottom: 76px; }
+  #perf { font-size: 10px; max-height: 30vh; overflow: auto; top: auto; bottom: 72px; right: 8px; left: 8px; }
 }
