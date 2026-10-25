@@ -6,8 +6,9 @@ import { PathManager } from '../src/core/PathManager.js';
 const stages = Array.from({ length: stageCount() }, (_, i) => getStage(i));
 
 describe('stages', () => {
-  it('has 6 levels, all generated (no fallback)', () => {
-    expect(stages.length).toBe(6);
+  it('has 30 stages over 10 difficulty tiers, all generated (no fallback)', () => {
+    expect(stages.length).toBe(30);
+    expect(new Set(stages.map((s) => s.cfg)).size).toBe(10);
     for (const s of stages) expect(s.fallback, s.name).toBe(false);
   });
 
@@ -34,7 +35,7 @@ describe('stages', () => {
   it('prints the stage table', () => {
     console.table(
       stages.map((s) => ({
-        stage: s.name, N: s.maze.topo.N, len: s.metrics.length, faces: s.maze.requiredFaces.length,
+        stage: s.name, tier: s.cfg.name, N: s.maze.topo.N, len: s.metrics.length, faces: s.maze.requiredFaces.length,
         trans: s.metrics.transitions, turns: s.metrics.turns, branches: s.metrics.branches,
         deadEnds: s.metrics.deadEnds, loops: s.metrics.loops, revisits: s.metrics.revisits,
         cells: s.metrics.circuitCells, score: s.metrics.score,

@@ -1,13 +1,25 @@
-// Stage list. Adding a stage = adding an entry here (preset + seed). No engine changes needed.
-// Seeds are pinned and verified by tests/stages.test.js.
-export const STAGES = [
-  { name: 'Initiation', difficulty: 'initiation', seed: 1 },
-  { name: 'Connection', difficulty: 'connection', seed: 2 },
-  { name: 'Cross Circuit', difficulty: 'crossCircuit', seed: 3 },
-  { name: 'Network', difficulty: 'network', seed: 4 },
-  { name: 'Full Circuit', difficulty: 'fullCircuit', seed: 5 },
-  { name: 'Core Restoration', difficulty: 'coreRestoration', seed: 6 },
-];
+import { DIFFICULTY } from '../config/difficultyConfig.js';
+
+// Stage list: per difficulty tier, a few pinned seeds (easiest first). Adding a stage = adding a seed here.
+// Seeds were picked so the difficulty score rises at every stage; tests/stages.test.js verifies this.
+const TIER_SEEDS = {
+  initiation: [2, 3, 44],
+  connection: [10, 3, 41],
+  junction: [55, 30, 9],
+  crossCircuit: [17, 53, 2],
+  relay: [2, 5, 25],
+  network: [12, 26, 34],
+  gridLock: [58, 12, 15],
+  fullCircuit: [46, 23, 1],
+  coreRestoration: [33, 2, 1],
+  singularity: [41, 8, 32],
+};
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+export const STAGES = Object.entries(TIER_SEEDS).flatMap(([difficulty, seeds], tier) =>
+  seeds.map((seed, k) => ({ name: `${DIFFICULTY[difficulty].name} ${ROMAN[k]}`, difficulty, tier, seed })),
+);
 
 // Hand-verified fallback (front → top, 4×4) used if generation ever fails. [face, row, col]; 0=front, 4=top.
 export const FIXED_MAZE = {

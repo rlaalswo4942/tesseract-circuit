@@ -9,7 +9,12 @@ import { DIFFICULTY } from '../src/config/difficultyConfig.js';
 describe('fixed fallback maze', () => {
   const maze = mazeFromData(FIXED_MAZE);
   it('is valid and crosses front → top', () => {
-    const v = validateMaze(maze, DIFFICULTY.initiation);
+    // The fallback is a fixed 4×4 board, independent of the (denser) generated presets.
+    const cfg = {
+      gridSize: 4, minSolutionLength: 7, maxSolutionLength: 12, requiredFaces: 2, minFaceTransitions: 1,
+      targetBranches: 2, branchDepth: 2, targetDeadEnds: 2, targetTurns: 2, allowedFaceRevisits: 0, loops: 0,
+    };
+    const v = validateMaze(maze, cfg);
     expect(v.errors).toEqual([]);
     expect(maze.requiredFaces).toEqual([0, 4]);
     expect(v.metrics.length).toBe(9);

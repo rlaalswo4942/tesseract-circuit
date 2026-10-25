@@ -1,4 +1,5 @@
 import { STAGES } from '../data/stages.js';
+import { DIFFICULTY } from '../config/difficultyConfig.js';
 
 const $ = (id) => document.getElementById(id);
 const QUALITY_LABEL = { low: '낮음', medium: '중간', high: '높음' };
@@ -25,22 +26,31 @@ export class UIController {
   renderStageGrid() {
     const { unlocked, cleared } = this.game.progress;
     this.selected = Math.min(this.selected, unlocked - 1);
-    $('stage-grid').replaceChildren(
-      ...STAGES.map((s, i) => {
-        const b = document.createElement('button');
-        b.innerHTML = `<b>${i + 1}</b>${s.name}`;
-        b.disabled = i >= unlocked;
-        b.title = b.disabled ? '이전 스테이지를 클리어하면 열립니다' : s.name;
-        b.classList.toggle('cleared', cleared.includes(i));
-        b.classList.toggle('selected', i === this.selected);
-        b.onclick = () => {
-          this.selected = i;
-          this.renderStageGrid();
-          this.game.preview(i);
-        };
-        return b;
-      }),
-    );
+    // One row per difficulty tier: label, then that tier's stage buttons.
+    const rows = [];
+    STAGES.forEach((s, i) => {
+      if (!rows[s.tier]) {
+        const cfg = DIFFICULTY[s.difficulty];
+        const row = document.createElement('div');
+        row.className = 'tier';
+        row.innerHTML = `<span class="tier-label"><span><b>T${s.tier + 1}</b> ${cfg.name}</span><small>${cfg.gridSize}×${cfg.gridSize} · ${cfg.requiredFaces}면</small></span>`;
+        rows[s.tier] = row;
+      }
+      const b = document.createElement('button');
+      b.textContent = i + 1;
+      b.disabled = i >= unlocked;
+      b.title = b.disabled ? '이전 스테이지를 클리어하면 열립니다' : s.name;
+      b.classList.toggle('cleared', cleared.includes(i));
+      b.classList.toggle('selected', i === this.selected);
+      b.onclick = () => {
+        this.selected = i;
+        this.renderStageGrid();
+        this.game.preview(i);
+      };
+      rows[s.tier].append(b);
+    });
+    $('stage-grid').replaceChildren(...rows);
+    $('stage-grid').querySelector('.selected')?.scrollIntoView({ block: 'nearest' });
     $('btn-start').textContent = this.selected === 0 && !cleared.length ? '시작 — STAGE 1부터' : `STAGE ${this.selected + 1} 시작`;
   }
 

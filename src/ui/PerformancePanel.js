@@ -54,7 +54,11 @@ export class PerformancePanel {
     if (!this.gpu) {
       const gl = g.sm.renderer.getContext();
       const ext = gl.getExtension('WEBGL_debug_renderer_info');
-      this.gpu = gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
+      const full = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+      // "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 (0x…) Direct3D11 …)" → "NVIDIA GeForce RTX 5070 / Direct3D11".
+      // Long strings wrapped on phones and pushed the panel over the start button.
+      const inner = full.match(/^ANGLE \((.*)\)$/)?.[1].split(', ')[1];
+      this.gpu = inner ? inner.replace(/\s*\(0x[0-9a-f]+\)/i, '').replace(/\s+(vs|ps)_\S+/g, '') : full;
     }
     return [
       `GPU ${this.gpu}`,
